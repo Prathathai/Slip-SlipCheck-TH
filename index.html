@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>SlipCheck TH | ตรวจสอบสลิป</title>
+<style>
+:root {
+  --bg:#0b1220; --panel:#142138; --text:#edf4ff;
+  --muted:#9aabc4; --line:#293951;
+  --green:#37d39a; --yellow:#ffca67; --red:#ff737d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:radial-gradient(ellipse at top,#172944,#0b1220 70%);
+  color:var(--text);font-family:system-ui,sans-serif;line-height:1.55
+}
+.wrap{width:min(100% - 24px,1000px);margin:auto;padding:24px 0 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{background:var(--green);color:#06231b;padding:10px 14px;border-radius:14px;font-size:24px;font-weight:900}
+h1{font-size:21px;margin:0}
+header p,.muted{color:var(--muted);font-size:12px;margin:3px 0}
+.tag{color:var(--green);border:1px solid #277f62;border-radius:30px;padding:5px 10px;font-size:11px}
+.hero{margin-bottom:24px}
+.hero small{color:var(--green);font-weight:bold;letter-spacing:2px}
+.hero h2{font-size:clamp(28px,5vw,44px);line-height:1.2;margin:10px 0}
+.hero h2 span{color:var(--green)}
+.hero p{color:var(--muted);max-width:680px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}
+.card h3{margin:0 0 4px}
+.drop{display:flex;min-height:170px;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:2px dashed #49617f;border-radius:15px;padding:18px;cursor:pointer;background:#0b1525}
+.drop strong{margin-top:8px}
+.drop small{color:var(--muted);margin-top:5px}
+.drop input{display:none}
+#preview{display:none;margin-top:12px;text-align:center}
+#preview img{max-width:100%;max-height:280px;object-fit:contain;border-radius:12px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.field.full{grid-column:1/-1}
+label{display:block;font-size:12px;margin-bottom:6px;color:#c1cee0}
+input[type=text],input[type=number]{
+ width:100%;padding:12px;border:1px solid #354861;border-radius:10px;
+ background:#0b1525;color:white;font:inherit;min-width:0
+}
+input:focus{outline:1px solid var(--green)}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.consent{display:flex;gap:9px;font-size:12px;color:var(--muted);margin:16px 0}
+button{cursor:pointer;border:0;border-radius:11px;padding:12px 15px;font-weight:bold;font-size:14px}
+.primary{width:100%;background:var(--green);color:#06231b}
+.secondary{background:#1b2a40;color:white;border:1px solid #344760}
+.actions{display:flex;gap:8px;margin-top:10px}
+.actions button{flex:1}
+.status{border:1px solid #40516a;background:#0c1626;border-radius:14px;padding:16px;margin:15px 0}
+.status h4{margin:0;font-size:16px}
+.status p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.status.warn{border-color:#9a773b}
+.status.good{border-color:#277f62}
+.status.bad{border-color:#9e4852}
+.meter{height:6px;background:#27364b;border-radius:20px;margin-top:16px;overflow:hidden}
+#meterFill{height:100%;width:0;background:var(--yellow);transition:width .3s}
+#meterLabel{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:5px}
+#results{display:grid;gap:9px}
+.item{display:flex;gap:10px;background:#0c1626;border:1px solid #24344a;border-radius:11px;padding:11px}
+.item strong{font-size:13px}
+.item p{font-size:12px;color:var(--muted);margin:3px 0 0;overflow-wrap:anywhere}
+.item .sym{font-weight:900;color:var(--green)}
+.item.warn .sym{color:var(--yellow)}
+.item.fail .sym{color:var(--red)}
+.disclaimer{background:#241f16;border:1px solid #65532e;border-radius:12px;padding:13px;color:#e7d4a7;font-size:12px;margin-top:16px}
+.how{margin-top:22px}
+.howgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.step{background:#101b2c;border:1px solid var(--line);border-radius:13px;padding:14px}
+.step b{font-size:13px}
+.step p{font-size:12px;color:var(--muted);margin-bottom:0}
+footer{text-align:center;color:#71839e;font-size:11px;margin-top:24px}
+.hidden{display:none!important}
+@media(max-width:720px){
+ .grid{grid-template-columns:1fr}
+ .wrap{padding-top:14px}
+ .card{padding:15px}
+ .howgrid{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+ .fields{grid-template-columns:1fr}
+ .field.full{grid-column:auto}
+ header{align-items:flex-start}
+ .tag{font-size:9px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <div class="logo">✓</div>
+    <div>
+      <h1>SlipCheck <span style="color:#37d39a">TH</span></h1>
+      <p>ระบบคัดกรองสลิปโอนเงิน</p>
+    </div>
+  </div>
+  <div class="tag">DEMO · ตรวจเบื้องต้น</div>
+</header>
+
+<section class="hero">
+  <small>VERIFY BEFORE YOU TRUST</small>
+  <h2>อย่าเพิ่งเชื่อสลิป<br><span>จนกว่าจะตรวจสอบ</span></h2>
+  <p>อัปโหลดสลิป ตรวจข้อมูลที่กรอก และค้นหาจุดผิดปกติเบื้องต้น เพื่อช่วยให้ตรวจสอบธุรกรรมได้รอบคอบขึ้น</p>
+</section>
+
+<div class="grid">
+<section class="card">
+  <h3>01 / เพิ่มสลิป</h3>
+  <p class="muted">รองรับ PNG, JPG และ WEBP ขนาดไม่เกิน 10 MB</p>
+
+  <label class="drop" id="dropzone" for="slipFile">
+    <span style="font-size:32px">↥</span>
+    <strong>แตะเพื่อเลือกรูปสลิป</strong>
+    <small>เลือกภาพจากโทรศัพท์หรือคอมพิวเตอร์</small>
+    <input id="slipFile" type="file" accept="image/png,image/jpeg,image/webp">
+  </label>
+
+  <div id="preview">
+    <img id="previewImg" alt="ตัวอย่างภาพสลิป">
+    <button class="secondary" id="removeImage" type="button">นำรูปออก</button>
+  </div>
+
+  <div class="fields">
+    <div class="field">
+      <label for="amount">ยอดเงินในสลิป (บาท)</label>
+      <input id="amount" type="number" min="0" step="0.01" placeholder="เช่น 1250.00">
+    </div>
+    <div class="field">
+      <label for="expectedAmount">ยอดที่ควรได้รับ (บาท)</label>
+      <input id="expectedAmount" type="number" min="0" step="0.01" placeholder="ถ้าทราบ">
+    </div>
+    <div class="field">
+      <label for="sender">ชื่อผู้โอนที่คาดไว้</label>
+      <input id="sender" type="text" maxlength="100" placeholder="ไม่บังคับ">
+    </div>
+    <div class="field">
+      <label for="receiver">ชื่อผู้รับที่คาดไว้</label>
+      <input id="receiver" type="text" maxlength="100" placeholder="ไม่บังคับ">
+    </div>
+    <div class="field full">
+      <label for="ref">เลขอ้างอิงธุรกรรม</label>
+      <input id="ref" type="text" maxlength="100" placeholder="เลขอ้างอิงตามสลิป">
+      <div class="hint">การกรอกเลขอ้างอิงยังไม่ใช่การตรวจสอบกับธนาคาร</div>
+    </div>
+  </div>
+
+  <label class="consent">
+    <input type="checkbox" id="confirm">
+    <span>ฉันมีสิทธิ์ตรวจสอบภาพนี้และยินยอมให้ระบบคัดกรองเบื้องต้น</span>
+  </label>
+
+  <button class="primary" id="checkBtn" type="button">ตรวจสอบเบื้องต้น</button>
+  <div class="actions">
+    <button class="secondary" id="resetBtn" type="button">ล้างข้อมูล</button>
+    <button class="secondary" id="printBtn" type="button">พิมพ์รายงาน</button>
+  </div>
+</section>
+
+<section class="card" aria-live="polite">
+  <h3>02 / ผลการตรวจสอบ</h3>
+  <p class="muted">ผลคัดกรองจากข้อมูลที่กรอก ไม่ใช่การรับรองจากธนาคาร</p>
+
+  <div class="status" id="statusBox">
+    <h4 id="statusTitle">⌕ รอข้อมูลสำหรับตรวจสอบ</h4>
+    <p id="statusText">เพิ่มสลิปแล้วกดปุ่มตรวจสอบ</p>
+    <div class="meter"><div id="meterFill"></div></div>
+    <span id="meterLabel">ยังไม่มีผล</span>
+  </div>
+
+  <div id="results">
+    <div class="item">
+      <div class="sym">i</div>
+      <div><strong>เริ่มต้นตรวจสอบ</strong><p>ระบบจะแสดงข้อมูลที่ตรวจได้และสิ่งที่ยังยืนยันไม่ได้</p></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>ข้อจำกัดสำคัญ</strong><br>
+    เวอร์ชันนี้ยังไม่เชื่อมต่อธนาคาร ไม่ได้อ่าน QR หรือข้อความจากภาพอัตโนมัติ และไม่สามารถพิสูจน์ว่าสลิปจริงหรือปลอมได้ การตรวจผ่านไม่ได้แปลว่าเงินเข้าบัญชีแล้ว ต้องตรวจรายการเงินจริงในแอปธนาคารของผู้รับ
+  </div>
+</section>
+</div>
+
+<section class="how">
+  <h3>แนวทางใช้งานให้ปลอดภัย</h3>
+  <div class="howgrid">
+    <div class="step"><b>1. ตรวจข้อมูลให้ตรงกัน</b><p>เปรียบเทียบยอดเงิน ชื่อผู้โอน ผู้รับ และเลขอ้างอิง</p></div>
+    <div class="step"><b>2. ตรวจเงินเข้าจริง</b><p>เปิดแอปธนาคารของผู้รับ อย่าใช้ภาพสลิปเป็นหลักฐานเดียว</p></div>
+    <div class="step"><b>3. เชื่อมระบบยืนยัน</b><p>ระบบใช้งานจริงควรใช้ API ที่ได้รับอนุญาตจากผู้ให้บริการที่เชื่อถือได้</p></div>
+  </div>
+</section>
+
+<footer>SlipCheck TH · เครื่องมือคัดกรองเบื้องต้น · ห้ามกรอกรหัสผ่านหรือ OTP</footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let selectedFile = null;
+  let objectUrl = null;
+
+  const fileInput = $('slipFile');
+  const drop = $('dropzone');
+
+  function setFile(file) {
+    if (!file) return;
+
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      alert('กรุณาเลือกภาพ PNG, JPG หรือ WEBP');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('ไฟล์ใหญ่เกิน 10 MB');
+      return;
+    }
+
+    selectedFile = file;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+
+    objectUrl = URL.createObjectURL(file);
+    $('previewImg').src = objectUrl;
+    $('preview').style.display = 'block';
+    drop.classList.add('hidden');
+  }
+
+  fileInput.addEventListener('change', e => setFile(e.target.files[0]));
+
+  ['dragenter','dragover'].forEach(eventName => {
+    drop.addEventListener(eventName, e => {
+      e.preventDefault();
+      drop.style.borderColor = 'var(--green)';
+    });
+  });
+
+  ['dragleave','drop'].forEach(eventName => {
+    drop.addEventListener(eventName, e => {
+      e.preventDefault();
+      drop.style.borderColor = '';
+    });
+  });
+
+  drop.addEventListener('drop', e => setFile(e.dataTransfer.files[0]));
+
+  function clearImage() {
+    selectedFile = null;
+    fileInput.value = '';
+    $('previewImg').removeAttribute('src');
+    $('preview').style.display = 'none';
+    drop.classList.remove('hidden');
+
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+  }
+
+  $('removeImage').addEventListener('click', clearImage);
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;',
+      '"':'&quot;', "'":'&#39;'
+    }[c]));
+  }
+
+  function render(status, title, message, score, checks) {
+    $('statusBox').className = 'status ' + status;
+    $('statusTitle').textContent = title;
+    $('statusText').textContent = message;
+    $('meterFill').style.width = score + '%';
+    $('meterFill').style.background =
+      status === 'good' ? 'var(--green)' :
+      status === 'bad' ? 'var(--red)' : 'var(--yellow)';
+    $('meterLabel').textContent = score + '% ของรายการตรวจเบื้องต้น';
+
+    $('results').innerHTML = checks.map(c => `
+      <div class="item ${c.type}">
+        <div class="sym">${c.symbol}</div>
+        <div>
+          <strong>${escapeHtml(c.title)}</strong>
+          <p>${escapeHtml(c.detail)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  $('checkBtn').addEventListener('click', () => {
+    if (!$('confirm').checked) {
+      render('','ต้องยืนยันก่อน','โปรดยืนยันสิทธิ์ในการตรวจสอบภาพ',0,[
+        {type:'warn',symbol:'!',title:'ยังไม่ได้ยืนยันสิทธิ์',detail:'ติ๊กช่องยืนยันก่อนเริ่มตรวจสอบ'}
+      ]);
+      return;
+    }
+
+    if (!selectedFile) {
+      render('','ยังไม่มีภาพสลิป','กรุณาเพิ่มภาพก่อนตรวจสอบ',0,[
+        {type:'warn',symbol:'!',title:'ไม่พบไฟล์ภาพ',detail:'เลือกภาพสลิปที่ต้องการคัดกรอง'}
+      ]);
+      return;
+    }
+
+    const amount = $('amount').value.trim();
+    const expected = $('expectedAmount').value.trim();
+    const sender = $('sender').value.trim();
+    const receiver = $('receiver').value.trim();
+    const ref = $('ref').value.trim();
+
+    const checks = [];
+    let warnings = 0;
+    let passes = 0;
+
+    checks.push({
+      type:'info',symbol:'i',title:'รับไฟล์ภาพแล้ว',
+      detail:`ชนิดไฟล์ ${selectedFile.type} ขนาด ${(selectedFile.size/1024).toFixed(1)} KB การรับไฟล์ได้ไม่ได้ยืนยันว่าภาพเป็นสลิปจริง`
+    });
+
+    if (amount !== '' && Number(amount) >= 0 && Number.isFinite(Number(amount))) {
+      checks.push({
+        type:'pass',symbol:'✓',title:'ระบุยอดเงินแล้ว',
+        detail:`ยอดที่กรอก ${Number(amount).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})} บาท แต่ระบบยังไม่ได้อ่านยอดจากภาพ`
+      });
+      passes++;
+    } else {
+      checks.push({
+        type:'warn',symbol:'!',title:'ยังไม่ได้ระบุยอดเงิน',
+        detail:'กรอกยอดตามภาพเพื่อเทียบกับยอดที่ควรได้รับ'
+      });
+      warnings++;
+    }
+
+    if (expected !== '' && amount !== '' &&
+        Number(expected) >= 0 && Number.isFinite(Number(expected))) {
+      if (Math.abs(Number(amount) - Number(expected)) > 0.009) {
+        checks.push({
+          type:'fail',symbol:'!',title:'ยอดเงินที่กรอกไม่ตรงกัน',
+          detail:`ยอดสลิป ${Number(amount).toLocaleString('th-TH')} บาท แต่ยอดที่คาดไว้ ${Number(expected).toLocaleString('th-TH')} บาท ควรตรวจสอบซ้ำ`
+        });
+        warnings++;
+      } else {
+        checks.push({
+          type:'pass',symbol:'✓',title:'ยอดที่กรอกตรงกัน',
+          detail:'ตัวเลขสองช่องตรงกัน แต่ยังไม่ได้ยืนยันกับภาพหรือธุรกรรมจริง'
+        });
+        passes++;
+      }
+    } else {
+      checks.push({
+        type:'info',symbol:'i',title:'ยังเทียบยอดไม่ได้',
+        detail:'กรอกยอดที่ควรได้รับ หากมีข้อมูลนี้'
+      });
+    }
+
+    if (sender || receiver) {
+      checks.push({
+        type:'info',symbol:'i',title:'มีข้อมูลชื่อสำหรับเทียบ',
+        detail:'ระบบยังไม่ได้อ่านชื่อจากภาพอัตโนมัติ โปรดตรวจชื่อในภาพด้วยตนเอง'
+      });
+    } else {
+      checks.push({
+        type:'info',symbol:'i',title:'ยังไม่มีชื่อสำหรับเทียบ',
+        detail:'หากต้องการเทียบชื่อ ให้กรอกข้อมูลที่คาดไว้'
+      });
+    }
+
+    if (ref) {
+      checks.push({
+        type:'info',symbol:'i',title:'กรอกเลขอ้างอิงแล้ว',
+        detail:'ระบบยังไม่ได้ตรวจเลขอ้างอิงกับธนาคาร จึงยืนยันธุรกรรมไม่ได้'
+      });
+    } else {
+      checks.push({
+        type:'warn',symbol:'!',title:'ไม่มีเลขอ้างอิงให้ตรวจ',
+        detail:'หากมี ให้ตรวจผ่านธนาคารหรือผู้ให้บริการที่ได้รับอนุญาต'
+      });
+      warnings++;
+    }
+
+    checks.push({
+      type:'warn',symbol:'⚠',title:'ยังยืนยัน QR หรือการตัดต่อไม่ได้',
+      detail:'เวอร์ชันนี้ไม่มี OCR การวิเคราะห์การแก้ไขภาพ หรือ API ธนาคาร จึงชี้ขาดจริงหรือปลอมไม่ได้'
+    });
+
+    checks.push({
+      type:'info',symbol:'i',title:'ต้องตรวจเงินเข้าจริง',
+      detail:'ตรวจรายการเดินบัญชีในแอปธนาคารของผู้รับโดยตรง'
+    });
+
+    const score = Math.min(80,Math.round((passes/(passes+warnings+2))*100));
+
+    render(
+      warnings > 0 ? 'warn' : '',
+      'ต้องตรวจสอบเพิ่มเติม',
+      'ผลนี้ไม่สามารถยืนยันว่าเป็นสลิปจริงหรือปลอมได้',
+      score, checks
+    );
+  });
+
+  $('resetBtn').addEventListener('click', () => {
+    clearImage();
+    ['amount','expectedAmount','sender','receiver','ref'].forEach(id => $(id).value = '');
+    $('confirm').checked = false;
+
+    render('','⌕ รอข้อมูลสำหรับตรวจสอบ','เพิ่มสลิปแล้วกดปุ่มตรวจสอบ',0,[
+      {type:'info',symbol:'i',title:'เริ่มต้นตรวจสอบ',detail:'เพิ่มภาพและกรอกข้อมูลที่ต้องการตรวจ'}
+    ]);
+  });
+
+  $('printBtn').addEventListener('click', () => window.print());
+})();
+</script>
+</body>
+</html>
